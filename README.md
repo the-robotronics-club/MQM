@@ -63,3 +63,11 @@
 - **Thermal & Mounting:** Ensure the enclosure allows for passive cooling and provides the correct mounting angles for optimal camera Field of View (FOV).
 
 - **Physical Deployment:** Securely mount the 2 sensing units at the identified vantage points in the mess hall.
+
+
+## Infra & Local Setup
+
+### 1. Environment Variables
+Copy `.env.example` to `.env` and fill in your credentials:
+```bash
+cp .env.example .env
