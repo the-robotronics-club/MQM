@@ -13,7 +13,7 @@ Every meal hour at our institute, students walk to the mess, glance at the queue
 
 MQM fixes this by putting a camera above the mess entrance, running person detection on each frame, and publishing live queue length and seating occupancy to a web dashboard that any student can check from their phone.
 
-The system is a wall-mounted Raspberry Pi Zero 2 W with a wide-angle camera that captures a JPEG every 10 seconds. Each frame is sent over Wi-Fi to a central server running YOLOv8 person detection and two MobileNetV2 classifiers that distinguish queued from seated people. Results are stored in Redis (for the current snapshot) and InfluxDB (for time-series history), then served to a Streamlit dashboard.
+The system is a wall-mounted Raspberry Pi 3 Model A+ with a wide-angle camera that captures a JPEG every 10 seconds. Each frame is sent over Wi-Fi to a central server running YOLOv8 person detection and two MobileNetV2 classifiers that distinguish queued from seated people. Results are stored in Redis (for the current snapshot) and InfluxDB (for time-series history), then served to a Streamlit dashboard.
 
 The practical outcome: students check the dashboard, see the queue is 25 people deep and 80% of seats are taken, and decide to eat 20 minutes later when the crowd has thinned. No app install required, just a browser.
 
@@ -52,7 +52,7 @@ The system has three stages: **capture**, **process**, and **display**.
  CAPTURE                    PROCESS                           DISPLAY
 +-------------+            +---------------------------+     +--------------+
 | Raspberry   |  JPEG POST | Central Server (FastAPI)   | GET | Streamlit    |
-| Pi Zero 2W  |----------->|                            |<----| Dashboard    |
+| Pi 3 A+     |----------->|                            |<----| Dashboard    |
 | + Camera    | (auth key) | YOLOv8 person detection    |     |              |
 +-------------+            |         |                  |     | - Headcount  |
   every 10s                |         v                  |     | - Queue len  |
@@ -91,7 +91,7 @@ The complete software pipeline is operational. As of 8 September 2026:
 
 ### Hardware status
 
-All components have been identified and sourced. Procurement is pending; the Raspberry Pi Zero 2 W and Camera Module 3 Wide will be acquired before final mounting and calibration.
+All components have been identified and sourced. Procurement is pending; the Raspberry Pi 3 Model A+ and Camera Module 3 Wide will be acquired before final mounting and calibration.
 
 ### Prototype — Detection in action
 
@@ -114,7 +114,7 @@ A larger IIT mess hall with 17 detections: 16 in the queue zone, 1 seated. Infer
 
 ### Enclosure design
 
-*A 3D-printed enclosure houses the Pi Zero 2 W, camera module, and battery pack for wall mounting:*
+*A 3D-printed enclosure houses the Pi 3 Model A+, camera module, and battery pack for wall mounting:*
 
 > **[INSERT: CAD render/photo of the 3D-printed enclosure]**
 
@@ -132,13 +132,13 @@ A larger IIT mess hall with 17 detections: 16 in the queue zone, 1 seated. Infer
 
 | # | Component | Qty | Price (INR) | Source | Status |
 | --- | ----------- | ----- | ------------- | -------- | -------- |
-| 1 | Raspberry Pi Zero 2 W | 1 | 1,599 | [Electropi](https://www.electropi.in/raspberry-pi-zero-2-w-india) | Pending |
+| 1 | Raspberry Pi 3 Model A+ | 1 | 3,211 | [Robu](https://robu.in/product/raspberry-pi-3-model-a/) | Pending |
 | 2 | Raspberry Pi Camera Module 3 Wide | 1 | 3,088 | [Electropi](https://www.electropi.in/raspberry-pi-camera-module-3-wide) | Pending |
-| 3 | DFRobot MP2636 Power Booster and Charger Module | 1 | 862 | [Robocraze](https://robocraze.com/products/dfrobot-mp2636-power-booster-charger-module) | Pending |
-| 4 | 3000mAh 3.7V LiPo Battery | 1 | 469 | [Robu](https://robu.in/product/nova-105050-3000mah-3-7v-micro-lipo-battery-pack/) | Pending |
-| 5 | 5V 3A Micro-USB Power Supply | 1 | 249 | [Robu](https://robu.in/product/orange-5v-3a-power-supply-adapter-charger-with-micro-usb-plug/) | Pending |
+| 3 | DFRobot MP2636 Power Booster and Charger Module | 1 | 900 | [Robocraze](https://robocraze.com/products/dfrobot-mp2636-power-booster-charger-module?variant=47362616459488&country=IN&currency=INR&utm_medium=product_sync&utm_source=google&utm_content=sag_organic&utm_campaign=sag_organic&utm_source=google&utm_medium=cpc&utm_campaign=BL+%7C+Pmax+%7C+Feed+Only+%7C+RoboCraze+%7C+Electronic+Components+%7C+31%2F05&utm_source=googleads&utm_medium=ppc&utm_campaign=21337209786&utm_content=_&utm_term=&campaignid=21337209786&adgroupid=&campaign=21337209786&gad_source=1&gad_campaignid=21343423652&gbraid=0AAAAADgHQvaLVEJeEAKHwMU3YTgQoi5BT&gclid=Cj0KCQjw--7UBhCpARIsAGJBptjohsvz7vmGAU_d2penL6hIC7rWc6sJIatZNQsmgroT2qs71N9GuFcaAhuzEALw_wcB) | Pending |
+| 4 | 3000mAh 3.7V LiPo Battery | 1 | 469 | [Robu](https://robu.in/product/nova-105050-3000mah-3-7v-micro-lipo-battery-pack/?gad_source=1&gad_campaignid=17427802559&gbraid=0AAAAADvLFWfBOAxwtKoc_rB5XuRQbOHss&gclid=Cj0KCQjw--7UBhCpARIsAGJBptjysFMZOT-CO76wAV8GTk03JG791q1cWhqdjimmNx-tbqhBeZpl-JQaAqo8EALw_wcB) | Pending |
+| 5 | 5V 3A Micro-USB Power Supply | 1 | 249 | [Robu](https://robu.in/product/orange-5v-3a-power-supply-adapter-charger-with-micro-usb-plug/?gad_source=1&gad_campaignid=17427802559&gbraid=0AAAAADvLFWdjgjAWQUpBgB_tcSoG4QZNW&gclid=CjwKCAjwkaXUBhASEiwAZI3ds7AxVBPzPY9SKF68SyXc_KrhFeh9InSrM8iIQR74nv2zibZH_YFcJBoCRKUQAvD_BwE) | Pending |
 | | | | | | |
-| | **Total** | | **6,267** | | **Pending** |
+| | **Total** | | **7,917** | | **Pending** |
 
 All software components (YOLOv8, PyTorch, FastAPI, Streamlit, Redis, InfluxDB) are open-source and free. Cloud hosting costs for production deployment are not included in this table; local development uses Docker Compose with no external charges.
 

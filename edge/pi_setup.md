@@ -1,6 +1,6 @@
-# Raspberry Pi Zero 2 W Setup Guide (MQM Edge)
+# Raspberry Pi 3 Model A+ Setup Guide (MQM Edge)
 
-This guide covers setting up a Raspberry Pi Zero 2 W with the Raspberry Pi Camera Module 3 to run the MQM edge capture script.
+This guide covers setting up a Raspberry Pi 3 Model A+ with the Raspberry Pi Camera Module 3 to run the MQM edge capture script.
 
 ## 1. Flash the OS
 
@@ -15,9 +15,9 @@ This guide covers setting up a Raspberry Pi Zero 2 W with the Raspberry Pi Camer
 
 ## 2. Hardware Assembly
 
-1. **Connect the Camera:** Use the smaller CSI camera ribbon cable (Zero specific). Lift the black tab on the Pi Zero's camera port, insert the cable (silver contacts facing the board), and push the tab down. Connect the other end to the Camera Module 3.
+1. **Connect the Camera:** Lift the black tab on the Pi 3 A+'s camera port, insert the cable (silver contacts facing away from the ethernet/USB ports), and push the tab down. Connect the other end to the Camera Module 3.
 2. Insert the flashed microSD card.
-3. Power on the Raspberry Pi Zero 2 W via the `PWR IN` micro-USB port using a high-quality 5V 2.5A (or better) power supply.
+3. Power on the Raspberry Pi 3 Model A+ via the `PWR IN` micro-USB port using a high-quality 5V 2.5A (or better) power supply.
 
 ## 3. SSH into the Pi
 
