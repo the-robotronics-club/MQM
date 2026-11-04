@@ -47,3 +47,4 @@ This directory contains representative raw real-world mess hall photos selected 
 * **Ground Truth:** 4 Headcount | 0 Sitting | 4 Standing (4 Queue)
 * **Model Prediction:** 4 Headcount | 0 Sitting | 4 Standing (4 Queue)
 * **Notes:** Clean small group entrance verification.
+
