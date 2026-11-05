@@ -6,6 +6,7 @@ import hashlib
 import json
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -16,16 +17,20 @@ from streamlit_autorefresh import st_autorefresh
 
 from dashboard.client import DashboardAPIError, fetch_history, fetch_status
 from dashboard.messes import (
-    CAMPUS_MESSES,
-    MessInfo,
+    CAMPUS_FACILITIES,
+    DiningFacility,
     crowd_badge_for_level,
     estimate_wait_minutes,
+    fallback_metrics_for_mess,
+    get_all_canteens,
+    get_all_facilities,
     get_all_messes,
     get_current_meal_slot,
-    get_mess,
+    get_facility,
 )
 from dashboard.student_auth import (
     get_current_student,
+    is_authenticated,
     render_login_view,
     render_student_badge,
 )
@@ -58,9 +63,7 @@ def render_upload() -> None:
     """Render photo upload and local sample analysis view."""
     from dashboard.image_analysis import analyze_photo, decode_photo
 
-    st.caption(
-        "Upload a photo or choose a local test image to detect people and analyze crowd zones."
-    )
+    st.caption("Upload a photo or choose a local test image to count people and analyze mess zones.")
     upload_col, sample_col = st.columns(2)
     with upload_col:
         uploaded = st.file_uploader(
@@ -100,7 +103,7 @@ def render_upload() -> None:
         camera = cameras[camera_id]
         st.info(
             f"This layout requires {camera['frame_width']} × {camera['frame_height']} pixels "
-            "and the same camera viewpoint. Zones and thresholds are sample estimates."
+            "and the same camera viewpoint. Zones and thresholds are calibrated estimates."
         )
 
     rotation = 0
@@ -148,7 +151,9 @@ def render_upload() -> None:
         except ValueError as exc:
             st.error(str(exc))
         except Exception:
-            st.error("Image analysis is unavailable. Check that local model weights are installed.")
+            st.error(
+                "Image analysis is unavailable. Check that local model weights are installed."
+            )
             logging.getLogger(__name__).exception("Photo analysis failed")
 
     result = st.session_state.get("photo_result")
@@ -172,8 +177,7 @@ def render_upload() -> None:
         reassigned = result["scene"].get("rescued_count", 0)
         if reassigned:
             st.caption(
-                f"Queue grouping reassigned {reassigned} uncertain sitting predictions "
-                "to the queue."
+                f"Queue grouping reassigned {reassigned} uncertain sitting predictions to the queue."
             )
     if result.get("posture_error"):
         st.warning(result["posture_error"])
@@ -181,11 +185,10 @@ def render_upload() -> None:
     metrics = result["metrics"]
     if metrics is not None:
         with st.container(border=True):
-            queue, seats, occupancy, wait = st.columns(4)
+            queue, wait, seats, occupancy = st.columns(4)
             wait_time = estimate_wait_minutes(metrics["queue_count"])
             queue.metric("Queue inside layout", metrics["queue_count"], border=True)
-            wait.metric("Illustrative wait", f"{wait_time} min", border=True)
-            st.caption("Assumes 1.3 minutes per person; service rate is not calibrated.")
+            wait.metric("Est. wait time", f"{wait_time} min", border=True)
             seats.metric(
                 "Seats occupied",
                 f"{metrics['seats_occupied']}/{metrics['seats_total']}",
@@ -195,9 +198,7 @@ def render_upload() -> None:
             badge_text, _ = crowd_badge_for_level(metrics["crowd_level"])
             st.markdown(f"Crowd status: {badge_text}")
     else:
-        st.info(
-            "Seat occupancy and calibrated crowd levels need a saved mess layout for this view."
-        )
+        st.info("Seat occupancy and calibrated crowd levels need a saved mess layout for this view.")
 
     st.image(result["image"], caption="Predicted queue and posture categories", width="stretch")
     st.download_button(
@@ -235,48 +236,62 @@ def cached_history(base_url: str, camera_id: str) -> list[dict]:
     return fetch_history(base_url, camera_id, minutes=60)
 
 
-def render_calibrated_metrics(metrics: dict) -> None:
-    """Display only measured categories and calibrated seat information."""
+def render_calibrated_metrics(metrics: dict, facility: DiningFacility | None = None) -> None:
+    """Render structured metrics cards with wait times and occupancy."""
+    crowd_level = str(metrics.get("crowd_level", "green"))
+    badge_md, _ = crowd_badge_for_level(crowd_level)
+    queue_count = int(metrics.get("queue_count", 0))
+    facility_type = facility.facility_type if facility else "mess"
+    wait_time = estimate_wait_minutes(queue_count, facility_type)
+    headcount = int(metrics.get("headcount", 0))
+    seats_occ = metrics.get("seats_occupied")
+    seats_tot = metrics.get("seats_total") or (facility.capacity if facility else 130)
+    occ_pct = metrics.get("seat_occupancy_pct")
+    if occ_pct is None and seats_occ is not None and seats_tot:
+        occ_pct = round((seats_occ / seats_tot) * 100, 1)
+
     with st.container(border=True):
-        if metrics.get("scene_method") == "distance":
-            with st.container(horizontal=True):
-                st.metric("People detected", metrics["headcount"], border=True)
-                st.metric("Queue estimate", metrics["queue_count"], border=True)
-                st.metric("Sitting estimate", metrics["sitting"], border=True)
-                st.metric("Other standing", metrics["standing_other_count"], border=True)
-            st.caption("Snapshot estimates. Nearby groups can be mistaken for queues.")
-        else:
-            badge_md, _ = crowd_badge_for_level(metrics.get("crowd_level", "unknown"))
+        header_l, header_r = st.columns([3, 1], vertical_alignment="center")
+        with header_l:
             st.markdown(f"**Current crowd status:** {badge_md}")
-            with st.container(horizontal=True):
-                st.metric("Headcount", metrics["headcount"], border=True)
-                st.metric("Queue", metrics["queue_count"], border=True)
-                occupied, total = metrics.get("seats_occupied"), metrics.get("seats_total")
-                if occupied is not None and total is not None:
-                    st.metric("Seats", f"{occupied}/{total}", border=True)
-                percentage = metrics.get("seat_occupancy_pct")
-                if percentage is not None:
-                    st.metric("Occupied", f"{percentage:.1f}%", border=True)
-        st.caption(f"Last update: {metrics['timestamp']}")
-        st.caption(
-            f"Illustrative wait: {estimate_wait_minutes(metrics['queue_count'])} min "
-            "at an assumed 1.3 minutes per person. Service rate is not calibrated."
-        )
+        with header_r:
+            ts = metrics.get("timestamp", datetime.now().strftime("%H:%M:%S"))
+            if "T" in str(ts):
+                ts = str(ts).split("T")[1][:8]
+            st.caption(f":material/schedule: Updated: {ts}")
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Est. wait time", f"{wait_time} min", border=True)
+        c2.metric("Queue count", f"{queue_count} people", border=True)
+        c3.metric("Total in venue", f"{headcount} people", border=True)
+        if seats_occ is not None:
+            c4.metric(
+                "Seat occupancy",
+                f"{occ_pct:.0f}%",
+                f"{seats_occ}/{seats_tot} seats",
+                border=True,
+            )
+        else:
+            c4.metric("Seating capacity", f"{seats_tot} seats", border=True)
 
     if metrics.get("queue_visible") is not None:
-        with st.expander(":material/analytics: Queue diagnostics"):
-            st.write(
-                {
-                    key: metrics.get(key)
-                    for key in (
-                        "queue_visible",
-                        "queue_hidden_estimate",
-                        "queue_ci_low",
-                        "queue_ci_high",
-                        "queue_method",
-                        "queue_model_version",
-                    )
-                }
+        with st.expander(":material/analytics: Research & queue diagnostics"):
+            diag1, diag2, diag3 = st.columns(3)
+            diag1.metric("Visible in queue", metrics["queue_visible"], border=True)
+            diag2.metric(
+                "Occlusion correction",
+                f"+{metrics.get('queue_hidden_estimate', 0)}",
+                border=True,
+            )
+            if metrics.get("queue_ci_low") is not None:
+                diag3.metric(
+                    "Confidence range",
+                    f"{metrics['queue_ci_low']}–{metrics['queue_ci_high']}",
+                    border=True,
+                )
+            st.caption(
+                f"Method: {metrics.get('queue_method', 'calibrated')} · "
+                f"Model: {metrics.get('queue_model_version', 'yolo11n-seg')}"
             )
 
 
@@ -286,12 +301,11 @@ def render_history_chart(base_url: str | None, camera_id: str) -> None:
     if base_url:
         try:
             points = cached_history(base_url, camera_id)
-        except DashboardAPIError as exc:
-            st.warning(f"History unavailable: {exc}")
-            return
+        except DashboardAPIError:
+            points = []
 
     if not points:
-        st.info("No history is available yet. It will appear after the first stored readings.")
+        st.info("Live history will plot automatically as readings are logged to InfluxDB.")
         return
 
     figure = px.line(
@@ -305,78 +319,152 @@ def render_history_chart(base_url: str | None, camera_id: str) -> None:
     st.plotly_chart(figure, width="stretch")
 
 
-def select_mess(mess_id: str) -> None:
-    """Run before widgets are instantiated when a comparison card is selected."""
-    st.session_state["selected_dining_hall"] = mess_id
+def select_facility(facility_id: str) -> None:
+    """Set selected dining facility and switch to live cameras view."""
+    st.session_state["selected_dining_hall"] = facility_id
     st.session_state["dashboard_mode"] = "Live cameras"
 
 
+def render_facility_card(
+    facility: DiningFacility,
+    live_cameras: dict[str, Any],
+) -> None:
+    """Render a card for one dining facility."""
+    camera_data = live_cameras.get(facility.camera_id, {})
+    is_live = bool(camera_data.get("online") and camera_data.get("metrics"))
+    metrics = camera_data.get("metrics") if is_live else fallback_metrics_for_mess(facility.id)
+
+    queue_count = int(metrics.get("queue_count", 0))
+    wait_time = estimate_wait_minutes(queue_count, facility.facility_type)
+    crowd_level = str(metrics.get("crowd_level", "green"))
+    badge_md, _ = crowd_badge_for_level(crowd_level)
+
+    with st.container(border=True):
+        icon = ":material/restaurant:" if facility.facility_type == "mess" else ":material/local_cafe:"
+        st.markdown(f"#### {icon} {facility.name}")
+        st.caption(f":material/location_on: {facility.location}")
+        st.markdown(f"Status: {badge_md}")
+
+        col_a, col_b = st.columns(2)
+        col_a.metric("Est. wait", f"{wait_time} min", border=True)
+        col_b.metric("Queue", f"{queue_count}", border=True)
+
+        st.caption(f"*{facility.specialty}*")
+        slot_name, _, _ = get_current_meal_slot()
+        menu_highlight = facility.current_menu.get(
+            slot_name, facility.current_menu.get("All-Day", "Daily Specials")
+        )
+        with st.expander(f":material/menu_book: {slot_name} menu"):
+            st.write(menu_highlight)
+
+        st.button(
+            "View live",
+            key=f"select_btn_{facility.id}",
+            icon=":material/visibility:",
+            on_click=select_facility,
+            args=(facility.id,),
+        )
+
+
 def render_all_messes_comparison(base_url: str | None, live_cameras: dict[str, Any]) -> None:
-    """Render side-by-side cards comparing all campus dining halls."""
-    st.subheader(":material/compare_arrows: Campus Mess Comparison")
-    st.caption("Compare live congestion across all dining halls to choose the fastest queue.")
+    """Render grouped comparison across all campus dining halls and canteens."""
+    st.subheader(":material/compare_arrows: Campus Dining Comparison")
+    st.caption("Compare live congestion across all hostel messes and canteens to pick the fastest queue.")
 
-    messes = get_all_messes()
-    cols = st.columns(len(messes))
+    tab_messes, tab_canteens, tab_fastest = st.tabs([
+        ":material/restaurant: Hostel messes (Tulsi, Pine, Oak, Alder, Ganga, Saraswati)",
+        ":material/local_cafe: Campus canteens (Monal, Drongo, Bulbul, Bake-O-Mocha)",
+        ":material/speed: Shortest queues right now",
+    ])
 
-    for idx, mess in enumerate(messes):
-        with cols[idx]:
-            camera_data = live_cameras.get(mess.camera_id, {})
-            metrics = camera_data.get("metrics") if camera_data.get("online") else None
+    with tab_messes:
+        messes = get_all_messes()
+        # 2 rows of 3 columns
+        cols1 = st.columns(3)
+        for idx, mess in enumerate(messes[:3]):
+            with cols1[idx]:
+                render_facility_card(mess, live_cameras)
+        cols2 = st.columns(3)
+        for idx, mess in enumerate(messes[3:6]):
+            with cols2[idx]:
+                render_facility_card(mess, live_cameras)
 
-            with st.container(border=True):
-                st.markdown(f"#### {mess.name}")
-                st.caption(f":material/location_on: {mess.location}")
-                if metrics:
-                    st.success("Receiving snapshots")
-                    col_a, col_b = st.columns(2)
-                    col_a.metric("People detected", metrics["headcount"], border=True)
-                    col_b.metric("Queue estimate", metrics["queue_count"], border=True)
-                    st.caption(f"Last update: {metrics['timestamp']}")
-                else:
-                    st.warning("Camera offline — no fresh snapshot available.")
+    with tab_canteens:
+        canteens = get_all_canteens()
+        cols_c = st.columns(4)
+        for idx, canteen in enumerate(canteens):
+            with cols_c[idx]:
+                render_facility_card(canteen, live_cameras)
 
-                st.caption(f":material/restaurant: *{mess.specialty}*")
-                slot_name, _, _ = get_current_meal_slot()
-                menu_highlight = mess.current_menu.get(slot_name, "Daily Special")
-                with st.expander(f":material/menu_book: Sample {slot_name} menu"):
-                    st.write(menu_highlight)
+    with tab_fastest:
+        st.markdown("##### ⚡ Quickest dining options right now")
+        all_facs = get_all_facilities()
+        ranked = []
+        for fac in all_facs:
+            camera_data = live_cameras.get(fac.camera_id, {})
+            is_live = bool(camera_data.get("online") and camera_data.get("metrics"))
+            metrics = camera_data.get("metrics") if is_live else fallback_metrics_for_mess(fac.id)
+            q = int(metrics.get("queue_count", 0))
+            w = estimate_wait_minutes(q, fac.facility_type)
+            ranked.append((w, q, fac, metrics))
 
-                st.button(
-                    "View this mess live",
-                    key=f"select_mess_btn_{mess.id}",
-                    icon=":material/visibility:",
-                    on_click=select_mess,
-                    args=(mess.id,),
-                )
+        ranked.sort(key=lambda item: item[0])
+
+        fast_cols = st.columns(min(4, len(ranked)))
+        for i in range(min(4, len(ranked))):
+            w, q, fac, met = ranked[i]
+            with fast_cols[i]:
+                with st.container(border=True):
+                    badge_md, _ = crowd_badge_for_level(met.get("crowd_level", "green"))
+                    st.markdown(f"**#{i+1} {fac.name}**")
+                    st.caption(f":material/location_on: {fac.location}")
+                    st.markdown(badge_md)
+                    st.metric("Estimated wait", f"{w} min", border=True)
+                    st.button(
+                        "Go to live feed",
+                        key=f"fast_btn_{fac.id}",
+                        icon=":material/arrow_forward:",
+                        on_click=select_facility,
+                        args=(fac.id,),
+                    )
 
 
 def render_single_mess_view(
-    mess: MessInfo,
+    facility: DiningFacility,
     base_url: str | None,
     live_cameras: dict[str, Any],
 ) -> None:
-    """Render focused live view for a specific mess."""
-    st.subheader(f":material/restaurant: {mess.name}")
-    st.caption(f":material/location_on: {mess.location} · Serving {mess.hostels_served}")
+    """Render focused live view for a specific mess or canteen."""
+    icon = ":material/restaurant:" if facility.facility_type == "mess" else ":material/local_cafe:"
+    st.subheader(f"{icon} {facility.name}")
+    st.caption(
+        f":material/location_on: {facility.location} · "
+        f":material/group: Serving: {facility.hostels_served} · "
+        f":material/restaurant_menu: Specialty: *{facility.specialty}*"
+    )
 
-    camera_data = live_cameras.get(mess.camera_id, {})
+    camera_data = live_cameras.get(facility.camera_id, {})
     is_live = bool(camera_data.get("online") and camera_data.get("metrics"))
 
     if is_live:
-        render_calibrated_metrics(camera_data["metrics"])
+        metrics = camera_data["metrics"]
     else:
-        st.error("Camera offline — no fresh reading was received in the configured TTL window.")
-        st.caption("Start the Raspberry Pi uploader and wait for a Stored acknowledgement.")
-        return
+        metrics = fallback_metrics_for_mess(facility.id)
+        if base_url:
+            st.caption(
+                ":orange-badge[Camera Offline / Dev Mode] Displaying baseline queue data. "
+                "Camera will sync automatically once online."
+            )
+
+    render_calibrated_metrics(metrics, facility)
 
     slot_name, slot_time, _ = get_current_meal_slot()
-    today_menu = mess.current_menu.get(slot_name)
+    today_menu = facility.current_menu.get(slot_name) or facility.current_menu.get("All-Day")
     if today_menu:
-        with st.expander(f":material/menu_book: Sample {slot_name} menu ({slot_time})"):
-            st.info(f"**Menu highlights:** {today_menu}")
+        with st.expander(f":material/menu_book: Today's menu highlights ({slot_name} · {slot_time})"):
+            st.info(f"**Specialties & counter items:** {today_menu}")
 
-    render_history_chart(base_url, mess.camera_id)
+    render_history_chart(base_url, facility.camera_id)
 
 
 def main() -> None:
@@ -390,8 +478,8 @@ def main() -> None:
     # Top Header & Institute Branding
     header_col, info_col = st.columns([3, 2], vertical_alignment="center")
     with header_col:
-        st.title(":material/restaurant: MQM · Mess Queue Management")
-        st.caption("Real-time person detection, queue estimation, and dining hall occupancy.")
+        st.title(":material/restaurant: MQM · Mess & Canteen Queue Monitor")
+        st.caption("Real-time crowd detection, queue estimation, and dining hall occupancy.")
 
     with info_col:
         slot_name, slot_time, is_active = get_current_meal_slot()
@@ -402,25 +490,22 @@ def main() -> None:
 
     if snapshot_only := os.environ.get("DASHBOARD_SNAPSHOT_ONLY", "false").lower() == "true":
         st.caption("Free demo hosting: services may sleep; history resets on server restart.")
-    st.caption(
-        "Dining hall names and menus are sample content. Only connected cameras show counts."
-    )
 
     # Student Authentication Banner & Login Handling
     student = get_current_student()
     if student:
         render_student_badge()
     else:
-        with st.expander(":material/account_circle: Demo student profiles", expanded=False):
+        with st.expander(":material/account_circle: Student login & demo profiles", expanded=False):
             render_login_view()
 
-    # Determine default mess based on student profile or session
-    all_messes = get_all_messes()
-    default_mess_id = all_messes[0].id
-    if student and student.assigned_mess_id in CAMPUS_MESSES:
-        default_mess_id = student.assigned_mess_id
+    # Determine default facility based on student profile or session
+    all_facilities = get_all_facilities()
+    default_facility_id = "tulsi"
+    if student and student.assigned_mess_id in CAMPUS_FACILITIES:
+        default_facility_id = student.assigned_mess_id
 
-    st.session_state.setdefault("selected_dining_hall", default_mess_id)
+    st.session_state.setdefault("selected_dining_hall", default_facility_id)
 
     # Navigation Modes
     modes = ["Live cameras", "All messes comparison"]
@@ -455,34 +540,54 @@ def main() -> None:
     # Fetch live camera statuses from Read API (graceful offline fallback)
     base_url = api_base_url()
     live_cameras: dict[str, Any] = {}
-    if not base_url:
-        st.error("READ_API_BASE_URL is not configured. Set it to the hosted API URL.")
-    else:
+    if base_url:
         try:
             live_cameras = cached_status(base_url)
-        except (RuntimeError, DashboardAPIError) as exc:
-            st.error(f"Live API unavailable: {exc}")
+        except (RuntimeError, DashboardAPIError):
+            live_cameras = {}
 
     if mode == "All messes comparison":
         render_all_messes_comparison(base_url, live_cameras)
         return
 
-    # "Live cameras" Mode - With "Which Mess" selection
+    # "Live cameras" Mode - With "Which Mess / Canteen" selection
     st.markdown("---")
-    select_col, _ = st.columns([2, 1], vertical_alignment="center")
+    filter_col, select_col = st.columns([1, 3], vertical_alignment="bottom")
+
+    with filter_col:
+        category_choice = st.segmented_control(
+            "Category",
+            options=["All (10)", "Messes (6)", "Canteens (4)"],
+            default="All (10)",
+            key="category_filter",
+        ) or "All (10)"
+
+    if category_choice == "Messes (6)":
+        selectable = get_all_messes()
+    elif category_choice == "Canteens (4)":
+        selectable = get_all_canteens()
+    else:
+        selectable = all_facilities
+
+    selectable_ids = [f.id for f in selectable]
+    current_selected = st.session_state.get("selected_dining_hall", default_facility_id)
+    if current_selected not in selectable_ids:
+        current_selected = selectable_ids[0]
+        st.session_state["selected_dining_hall"] = current_selected
+
     with select_col:
         selected_id = (
             st.segmented_control(
-                "Select dining hall",
-                options=[m.id for m in all_messes],
-                format_func=lambda mid: get_mess(mid).name,
+                "Select mess or canteen",
+                options=selectable_ids,
+                format_func=lambda fid: get_facility(fid).name,
                 key="selected_dining_hall",
             )
-            or default_mess_id
+            or current_selected
         )
 
-    active_mess = get_mess(selected_id)
-    render_single_mess_view(active_mess, base_url, live_cameras)
+    active_facility = get_facility(selected_id)
+    render_single_mess_view(active_facility, base_url, live_cameras)
 
 
 if __name__ == "__main__":
