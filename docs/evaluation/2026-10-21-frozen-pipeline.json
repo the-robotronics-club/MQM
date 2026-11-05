@@ -1,0 +1,1640 @@
+{
+  "plan": {
+    "training": false,
+    "promotion": "None automatic; reused benchmark is diagnostic",
+    "labels_sha256": "5e0389e3e931c6b59577e6adec293178e428076f61a6b98dc43f7cdefcc9c886",
+    "seated_weights_sha256": "03edbbb715d08b6a8d847e4c9c46c51bb6536b9fa8b4618095b69fc15ac85ceb",
+    "source_prediction_sha256": {
+      "nano": "ac17c6fc7a0e82877f2e106a9f277f17102699451b128ad3d6bf32141ef97142",
+      "yolo11m": "fb15fc9f7c826a1f714859ae59b026726dd4a33e0bc37a36776b55f2cea216f6"
+    },
+    "queue_settings": {
+      "dist_threshold": 1.6,
+      "min_group_size": 3,
+      "min_elongation": 2.0,
+      "rescue_max_p_seated": 0.9,
+      "rescue_head_tol": 0.2,
+      "rescue_allow_chaining": false,
+      "rescue_min_neighbors": 2
+    },
+    "queue_policies": {
+      "control": {
+        "rescue_allow_chaining": true,
+        "rescue_min_neighbors": 1
+      },
+      "original_seeds": {
+        "rescue_allow_chaining": false,
+        "rescue_min_neighbors": 1
+      },
+      "two_original_seeds": {
+        "rescue_allow_chaining": false,
+        "rescue_min_neighbors": 2
+      },
+      "no_rescue": {
+        "rescue_max_p_seated": null
+      }
+    },
+    "posture_variants": [
+      "original",
+      "flip_mean"
+    ],
+    "ensemble": {
+      "match_iou": 0.5,
+      "unmatched_confidence": 0.35,
+      "nms_iou": 0.5
+    },
+    "selection": "Development sitting+standing MAE; validation reported after selection",
+    "limitations": "Previously inspected sessions; not a pristine held-out test. 50 exact labels, 10 count ranges; queue labels exist only for 419."
+  },
+  "trials": [
+    {
+      "name": "nano-original-control",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.8,
+          "sitting": 5.167,
+          "standing": 3.817
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 12,
+          "standing": 14
+        },
+        "all_counts_match": 4,
+        "rescued_count": 117
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 3.829,
+          "sitting": 3.029,
+          "standing": 3.886
+        },
+        "count_matches": {
+          "headcount": 5,
+          "sitting": 9,
+          "standing": 8
+        },
+        "all_counts_match": 3,
+        "rescued_count": 72
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.643,
+          "sitting": 4.429,
+          "standing": 3.071
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 1,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 17
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.7,
+          "sitting": 3.36,
+          "standing": 3.58
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 11,
+          "standing": 12
+        },
+        "all_counts_match": 4,
+        "rescued_count": 89
+      }
+    },
+    {
+      "name": "nano-original-original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.8,
+          "sitting": 5.067,
+          "standing": 3.65
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 12,
+          "standing": 14
+        },
+        "all_counts_match": 4,
+        "rescued_count": 107
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 3.829,
+          "sitting": 3.0,
+          "standing": 3.743
+        },
+        "count_matches": {
+          "headcount": 5,
+          "sitting": 9,
+          "standing": 8
+        },
+        "all_counts_match": 3,
+        "rescued_count": 67
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.643,
+          "sitting": 4.357,
+          "standing": 3.0
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 1,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 16
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.7,
+          "sitting": 3.32,
+          "standing": 3.46
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 11,
+          "standing": 12
+        },
+        "all_counts_match": 4,
+        "rescued_count": 83
+      }
+    },
+    {
+      "name": "nano-original-two_original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.8,
+          "sitting": 4.55,
+          "standing": 3.5
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 14,
+          "standing": 13
+        },
+        "all_counts_match": 4,
+        "rescued_count": 62
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 3.829,
+          "sitting": 2.457,
+          "standing": 3.543
+        },
+        "count_matches": {
+          "headcount": 5,
+          "sitting": 10,
+          "standing": 9
+        },
+        "all_counts_match": 3,
+        "rescued_count": 40
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.643,
+          "sitting": 3.857,
+          "standing": 2.786
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 1,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 7
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.7,
+          "sitting": 2.8,
+          "standing": 3.26
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 12,
+          "standing": 13
+        },
+        "all_counts_match": 4,
+        "rescued_count": 47
+      }
+    },
+    {
+      "name": "nano-original-no_rescue",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.8,
+          "sitting": 4.617,
+          "standing": 3.55
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 14,
+          "standing": 17
+        },
+        "all_counts_match": 5,
+        "rescued_count": 0
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 3.829,
+          "sitting": 2.457,
+          "standing": 3.429
+        },
+        "count_matches": {
+          "headcount": 5,
+          "sitting": 12,
+          "standing": 12
+        },
+        "all_counts_match": 4,
+        "rescued_count": 0
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.643,
+          "sitting": 4.214,
+          "standing": 3.286
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 1,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 0
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.7,
+          "sitting": 2.9,
+          "standing": 3.32
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 14,
+          "standing": 16
+        },
+        "all_counts_match": 5,
+        "rescued_count": 0
+      }
+    },
+    {
+      "name": "nano-flip_mean-control",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.8,
+          "sitting": 4.983,
+          "standing": 3.733
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 15,
+          "standing": 11
+        },
+        "all_counts_match": 4,
+        "rescued_count": 119
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 3.829,
+          "sitting": 2.886,
+          "standing": 3.857
+        },
+        "count_matches": {
+          "headcount": 5,
+          "sitting": 11,
+          "standing": 6
+        },
+        "all_counts_match": 3,
+        "rescued_count": 76
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.643,
+          "sitting": 3.714,
+          "standing": 2.357
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 3,
+          "standing": 2
+        },
+        "all_counts_match": 0,
+        "rescued_count": 12
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.7,
+          "sitting": 3.06,
+          "standing": 3.36
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 15,
+          "standing": 9
+        },
+        "all_counts_match": 4,
+        "rescued_count": 88
+      }
+    },
+    {
+      "name": "nano-flip_mean-original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.8,
+          "sitting": 4.85,
+          "standing": 3.567
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 15,
+          "standing": 11
+        },
+        "all_counts_match": 4,
+        "rescued_count": 107
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 3.829,
+          "sitting": 2.743,
+          "standing": 3.6
+        },
+        "count_matches": {
+          "headcount": 5,
+          "sitting": 11,
+          "standing": 6
+        },
+        "all_counts_match": 3,
+        "rescued_count": 67
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.643,
+          "sitting": 3.643,
+          "standing": 2.429
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 3,
+          "standing": 2
+        },
+        "all_counts_match": 0,
+        "rescued_count": 11
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.7,
+          "sitting": 2.94,
+          "standing": 3.2
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 15,
+          "standing": 9
+        },
+        "all_counts_match": 4,
+        "rescued_count": 78
+      }
+    },
+    {
+      "name": "nano-flip_mean-two_original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.8,
+          "sitting": 4.533,
+          "standing": 3.317
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 16,
+          "standing": 10
+        },
+        "all_counts_match": 4,
+        "rescued_count": 72
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 3.829,
+          "sitting": 2.486,
+          "standing": 3.457
+        },
+        "count_matches": {
+          "headcount": 5,
+          "sitting": 11,
+          "standing": 7
+        },
+        "all_counts_match": 3,
+        "rescued_count": 50
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.643,
+          "sitting": 3.357,
+          "standing": 2.429
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 4,
+          "standing": 2
+        },
+        "all_counts_match": 0,
+        "rescued_count": 7
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.7,
+          "sitting": 2.68,
+          "standing": 3.1
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 16,
+          "standing": 10
+        },
+        "all_counts_match": 4,
+        "rescued_count": 57
+      }
+    },
+    {
+      "name": "nano-flip_mean-no_rescue",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.8,
+          "sitting": 4.467,
+          "standing": 3.433
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 19,
+          "standing": 12
+        },
+        "all_counts_match": 5,
+        "rescued_count": 0
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 3.829,
+          "sitting": 2.371,
+          "standing": 3.457
+        },
+        "count_matches": {
+          "headcount": 5,
+          "sitting": 14,
+          "standing": 7
+        },
+        "all_counts_match": 4,
+        "rescued_count": 0
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.643,
+          "sitting": 3.857,
+          "standing": 2.929
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 3,
+          "standing": 2
+        },
+        "all_counts_match": 0,
+        "rescued_count": 0
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.7,
+          "sitting": 2.74,
+          "standing": 3.24
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 18,
+          "standing": 10
+        },
+        "all_counts_match": 5,
+        "rescued_count": 0
+      }
+    },
+    {
+      "name": "yolo11m-original-control",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.65,
+          "sitting": 4.817,
+          "standing": 4.55
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 12,
+          "standing": 12
+        },
+        "all_counts_match": 8,
+        "rescued_count": 138
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.714,
+          "sitting": 3.257,
+          "standing": 4.714
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 10,
+          "standing": 9
+        },
+        "all_counts_match": 7,
+        "rescued_count": 91
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.286,
+          "sitting": 4.571,
+          "standing": 4.0
+        },
+        "count_matches": {
+          "headcount": 3,
+          "sitting": 0,
+          "standing": 1
+        },
+        "all_counts_match": 0,
+        "rescued_count": 28
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.22,
+          "sitting": 3.56,
+          "standing": 4.42
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 11,
+          "standing": 11
+        },
+        "all_counts_match": 8,
+        "rescued_count": 119
+      }
+    },
+    {
+      "name": "yolo11m-original-original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.65,
+          "sitting": 4.45,
+          "standing": 4.183
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 12,
+          "standing": 15
+        },
+        "all_counts_match": 8,
+        "rescued_count": 110
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.714,
+          "sitting": 2.943,
+          "standing": 4.229
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 10,
+          "standing": 12
+        },
+        "all_counts_match": 7,
+        "rescued_count": 74
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.286,
+          "sitting": 3.857,
+          "standing": 3.714
+        },
+        "count_matches": {
+          "headcount": 3,
+          "sitting": 0,
+          "standing": 1
+        },
+        "all_counts_match": 0,
+        "rescued_count": 18
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.22,
+          "sitting": 3.14,
+          "standing": 4.0
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 11,
+          "standing": 14
+        },
+        "all_counts_match": 8,
+        "rescued_count": 92
+      }
+    },
+    {
+      "name": "yolo11m-original-two_original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.65,
+          "sitting": 3.933,
+          "standing": 4.0
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 17,
+          "standing": 15
+        },
+        "all_counts_match": 8,
+        "rescued_count": 73
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.714,
+          "sitting": 2.343,
+          "standing": 3.971
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 13,
+          "standing": 12
+        },
+        "all_counts_match": 7,
+        "rescued_count": 47
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.286,
+          "sitting": 3.286,
+          "standing": 3.714
+        },
+        "count_matches": {
+          "headcount": 3,
+          "sitting": 1,
+          "standing": 1
+        },
+        "all_counts_match": 0,
+        "rescued_count": 10
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.22,
+          "sitting": 2.56,
+          "standing": 3.82
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 15,
+          "standing": 14
+        },
+        "all_counts_match": 8,
+        "rescued_count": 57
+      }
+    },
+    {
+      "name": "yolo11m-original-no_rescue",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.65,
+          "sitting": 4.183,
+          "standing": 3.717
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 15,
+          "standing": 14
+        },
+        "all_counts_match": 7,
+        "rescued_count": 0
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.714,
+          "sitting": 2.657,
+          "standing": 3.714
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 11,
+          "standing": 9
+        },
+        "all_counts_match": 6,
+        "rescued_count": 0
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.286,
+          "sitting": 3.429,
+          "standing": 3.857
+        },
+        "count_matches": {
+          "headcount": 3,
+          "sitting": 2,
+          "standing": 2
+        },
+        "all_counts_match": 0,
+        "rescued_count": 0
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.22,
+          "sitting": 2.82,
+          "standing": 3.68
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 14,
+          "standing": 12
+        },
+        "all_counts_match": 7,
+        "rescued_count": 0
+      }
+    },
+    {
+      "name": "yolo11m-flip_mean-control",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.65,
+          "sitting": 4.75,
+          "standing": 4.383
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 11,
+          "standing": 11
+        },
+        "all_counts_match": 6,
+        "rescued_count": 128
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.714,
+          "sitting": 2.8,
+          "standing": 4.143
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 9,
+          "standing": 8
+        },
+        "all_counts_match": 5,
+        "rescued_count": 72
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.286,
+          "sitting": 3.929,
+          "standing": 3.643
+        },
+        "count_matches": {
+          "headcount": 3,
+          "sitting": 1,
+          "standing": 1
+        },
+        "all_counts_match": 0,
+        "rescued_count": 19
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.22,
+          "sitting": 3.06,
+          "standing": 3.92
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 11,
+          "standing": 10
+        },
+        "all_counts_match": 6,
+        "rescued_count": 91
+      }
+    },
+    {
+      "name": "yolo11m-flip_mean-original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.65,
+          "sitting": 4.383,
+          "standing": 3.95
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 10,
+          "standing": 13
+        },
+        "all_counts_match": 6,
+        "rescued_count": 102
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.714,
+          "sitting": 2.571,
+          "standing": 3.8
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 8,
+          "standing": 10
+        },
+        "all_counts_match": 5,
+        "rescued_count": 60
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.286,
+          "sitting": 3.571,
+          "standing": 3.286
+        },
+        "count_matches": {
+          "headcount": 3,
+          "sitting": 1,
+          "standing": 1
+        },
+        "all_counts_match": 0,
+        "rescued_count": 14
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.22,
+          "sitting": 2.8,
+          "standing": 3.58
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 10,
+          "standing": 12
+        },
+        "all_counts_match": 6,
+        "rescued_count": 74
+      }
+    },
+    {
+      "name": "yolo11m-flip_mean-two_original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.65,
+          "sitting": 4.033,
+          "standing": 3.767
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 10,
+          "standing": 14
+        },
+        "all_counts_match": 6,
+        "rescued_count": 69
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.714,
+          "sitting": 2.286,
+          "standing": 3.743
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 9,
+          "standing": 11
+        },
+        "all_counts_match": 5,
+        "rescued_count": 42
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.286,
+          "sitting": 3.214,
+          "standing": 3.214
+        },
+        "count_matches": {
+          "headcount": 3,
+          "sitting": 0,
+          "standing": 1
+        },
+        "all_counts_match": 0,
+        "rescued_count": 7
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.22,
+          "sitting": 2.5,
+          "standing": 3.52
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 10,
+          "standing": 13
+        },
+        "all_counts_match": 6,
+        "rescued_count": 49
+      }
+    },
+    {
+      "name": "yolo11m-flip_mean-no_rescue",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.65,
+          "sitting": 4.017,
+          "standing": 3.583
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 11,
+          "standing": 13
+        },
+        "all_counts_match": 6,
+        "rescued_count": 0
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.714,
+          "sitting": 2.457,
+          "standing": 3.571
+        },
+        "count_matches": {
+          "headcount": 7,
+          "sitting": 8,
+          "standing": 9
+        },
+        "all_counts_match": 5,
+        "rescued_count": 0
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.286,
+          "sitting": 3.143,
+          "standing": 3.571
+        },
+        "count_matches": {
+          "headcount": 3,
+          "sitting": 1,
+          "standing": 1
+        },
+        "all_counts_match": 0,
+        "rescued_count": 0
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.22,
+          "sitting": 2.6,
+          "standing": 3.5
+        },
+        "count_matches": {
+          "headcount": 11,
+          "sitting": 10,
+          "standing": 11
+        },
+        "all_counts_match": 6,
+        "rescued_count": 0
+      }
+    },
+    {
+      "name": "consensus-original-control",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 6.717,
+          "sitting": 5.633,
+          "standing": 4.0
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 15,
+          "standing": 8
+        },
+        "all_counts_match": 3,
+        "rescued_count": 114
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.6,
+          "sitting": 3.371,
+          "standing": 3.971
+        },
+        "count_matches": {
+          "headcount": 2,
+          "sitting": 11,
+          "standing": 4
+        },
+        "all_counts_match": 2,
+        "rescued_count": 71
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 4.857,
+          "sitting": 5.214,
+          "standing": 3.071
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 2,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 17
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.58,
+          "sitting": 3.82,
+          "standing": 3.64
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 14,
+          "standing": 8
+        },
+        "all_counts_match": 3,
+        "rescued_count": 88
+      }
+    },
+    {
+      "name": "consensus-original-original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 6.717,
+          "sitting": 5.35,
+          "standing": 3.883
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 15,
+          "standing": 9
+        },
+        "all_counts_match": 3,
+        "rescued_count": 95
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.6,
+          "sitting": 3.171,
+          "standing": 3.829
+        },
+        "count_matches": {
+          "headcount": 2,
+          "sitting": 11,
+          "standing": 5
+        },
+        "all_counts_match": 2,
+        "rescued_count": 62
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 4.857,
+          "sitting": 4.643,
+          "standing": 3.071
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 2,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 9
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.58,
+          "sitting": 3.52,
+          "standing": 3.54
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 14,
+          "standing": 9
+        },
+        "all_counts_match": 3,
+        "rescued_count": 71
+      }
+    },
+    {
+      "name": "consensus-original-two_original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 6.717,
+          "sitting": 4.783,
+          "standing": 3.583
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 15,
+          "standing": 11
+        },
+        "all_counts_match": 3,
+        "rescued_count": 43
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.6,
+          "sitting": 2.6,
+          "standing": 3.6
+        },
+        "count_matches": {
+          "headcount": 2,
+          "sitting": 11,
+          "standing": 6
+        },
+        "all_counts_match": 2,
+        "rescued_count": 28
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 4.857,
+          "sitting": 4.214,
+          "standing": 3.071
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 1,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 1
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.58,
+          "sitting": 3.0,
+          "standing": 3.38
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 13,
+          "standing": 10
+        },
+        "all_counts_match": 3,
+        "rescued_count": 29
+      }
+    },
+    {
+      "name": "consensus-original-no_rescue",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 6.717,
+          "sitting": 4.633,
+          "standing": 3.65
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 15,
+          "standing": 10
+        },
+        "all_counts_match": 3,
+        "rescued_count": 0
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.6,
+          "sitting": 2.371,
+          "standing": 3.714
+        },
+        "count_matches": {
+          "headcount": 2,
+          "sitting": 11,
+          "standing": 5
+        },
+        "all_counts_match": 2,
+        "rescued_count": 0
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 4.857,
+          "sitting": 4.143,
+          "standing": 3.143
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 2,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 0
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.58,
+          "sitting": 2.82,
+          "standing": 3.48
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 14,
+          "standing": 9
+        },
+        "all_counts_match": 3,
+        "rescued_count": 0
+      }
+    },
+    {
+      "name": "consensus-flip_mean-control",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 6.717,
+          "sitting": 5.4,
+          "standing": 3.767
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 12,
+          "standing": 12
+        },
+        "all_counts_match": 3,
+        "rescued_count": 112
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.6,
+          "sitting": 3.257,
+          "standing": 3.629
+        },
+        "count_matches": {
+          "headcount": 2,
+          "sitting": 9,
+          "standing": 6
+        },
+        "all_counts_match": 2,
+        "rescued_count": 69
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 4.857,
+          "sitting": 4.714,
+          "standing": 3.429
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 2,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 16
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.58,
+          "sitting": 3.6,
+          "standing": 3.5
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 12,
+          "standing": 10
+        },
+        "all_counts_match": 3,
+        "rescued_count": 85
+      }
+    },
+    {
+      "name": "consensus-flip_mean-original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 6.717,
+          "sitting": 5.1,
+          "standing": 3.683
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 13,
+          "standing": 10
+        },
+        "all_counts_match": 3,
+        "rescued_count": 94
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.6,
+          "sitting": 3.0,
+          "standing": 3.657
+        },
+        "count_matches": {
+          "headcount": 2,
+          "sitting": 10,
+          "standing": 5
+        },
+        "all_counts_match": 2,
+        "rescued_count": 60
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 4.857,
+          "sitting": 4.357,
+          "standing": 3.071
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 2,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 11
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.58,
+          "sitting": 3.32,
+          "standing": 3.42
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 13,
+          "standing": 9
+        },
+        "all_counts_match": 3,
+        "rescued_count": 71
+      }
+    },
+    {
+      "name": "consensus-flip_mean-two_original_seeds",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 6.717,
+          "sitting": 4.667,
+          "standing": 3.483
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 14,
+          "standing": 13
+        },
+        "all_counts_match": 3,
+        "rescued_count": 52
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.6,
+          "sitting": 2.514,
+          "standing": 3.571
+        },
+        "count_matches": {
+          "headcount": 2,
+          "sitting": 12,
+          "standing": 7
+        },
+        "all_counts_match": 2,
+        "rescued_count": 33
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 4.857,
+          "sitting": 4.0,
+          "standing": 3.0
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 1,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 4
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.58,
+          "sitting": 2.88,
+          "standing": 3.34
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 14,
+          "standing": 11
+        },
+        "all_counts_match": 3,
+        "rescued_count": 37
+      }
+    },
+    {
+      "name": "consensus-flip_mean-no_rescue",
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 6.717,
+          "sitting": 4.467,
+          "standing": 3.6
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 13,
+          "standing": 13
+        },
+        "all_counts_match": 3,
+        "rescued_count": 0
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.6,
+          "sitting": 2.314,
+          "standing": 3.6
+        },
+        "count_matches": {
+          "headcount": 2,
+          "sitting": 9,
+          "standing": 7
+        },
+        "all_counts_match": 2,
+        "rescued_count": 0
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 4.857,
+          "sitting": 3.714,
+          "standing": 3.143
+        },
+        "count_matches": {
+          "headcount": 1,
+          "sitting": 2,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "rescued_count": 0
+      },
+      "exact_labels": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.58,
+          "sitting": 2.66,
+          "standing": 3.4
+        },
+        "count_matches": {
+          "headcount": 4,
+          "sitting": 12,
+          "standing": 11
+        },
+        "all_counts_match": 3,
+        "rescued_count": 0
+      }
+    }
+  ],
+  "development_leader": {
+    "name": "nano-flip_mean-no_rescue",
+    "all": {
+      "images": 60,
+      "mae": {
+        "headcount": 5.8,
+        "sitting": 4.467,
+        "standing": 3.433
+      },
+      "count_matches": {
+        "headcount": 7,
+        "sitting": 19,
+        "standing": 12
+      },
+      "all_counts_match": 5,
+      "rescued_count": 0
+    },
+    "development": {
+      "images": 35,
+      "mae": {
+        "headcount": 3.829,
+        "sitting": 2.371,
+        "standing": 3.457
+      },
+      "count_matches": {
+        "headcount": 5,
+        "sitting": 14,
+        "standing": 7
+      },
+      "all_counts_match": 4,
+      "rescued_count": 0
+    },
+    "validation": {
+      "images": 14,
+      "mae": {
+        "headcount": 3.643,
+        "sitting": 3.857,
+        "standing": 2.929
+      },
+      "count_matches": {
+        "headcount": 1,
+        "sitting": 3,
+        "standing": 2
+      },
+      "all_counts_match": 0,
+      "rescued_count": 0
+    },
+    "exact_labels": {
+      "images": 50,
+      "mae": {
+        "headcount": 3.7,
+        "sitting": 2.74,
+        "standing": 3.24
+      },
+      "count_matches": {
+        "headcount": 7,
+        "sitting": 18,
+        "standing": 10
+      },
+      "all_counts_match": 5,
+      "rescued_count": 0
+    }
+  },
+  "max_all_count_matches_diagnostic": 8,
+  "goal_reached": false,
+  "weights_unchanged": true,
+  "production_decision": {
+    "promoted": "nano-original-two_original_seeds",
+    "reason": "Minimal structural guard against recursive posture reassignment; lower errors in both diagnostic session groups, no additional model inference. No training or per-image rules.",
+    "not_promoted": [
+      "flip averaging",
+      "consensus detector",
+      "YOLO11m default",
+      "YOLO26m default"
+    ],
+    "fresh_production_counts_reproduced_on_all_images": true
+  }
+}

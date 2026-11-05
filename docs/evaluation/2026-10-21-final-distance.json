@@ -1,0 +1,58 @@
+{
+  "annotation": "Image-level counts; queue error only where queue labels exist",
+  "queue_mode": "distance",
+  "distance_settings": {
+    "dist_threshold": 1.6,
+    "min_group_size": 3,
+    "min_elongation": 2.0,
+    "rescue_max_p_seated": 0.9,
+    "rescue_head_tol": 0.2
+  },
+  "confidence": 0.25,
+  "image_size": 1280,
+  "iou": 0.5,
+  "adaptive_confidence": true,
+  "crowd_confidence": 0.15,
+  "crowd_min_people": 25,
+  "labels_sha256": "5e0389e3e931c6b59577e6adec293178e428076f61a6b98dc43f7cdefcc9c886",
+  "detector": "yolov8n.pt",
+  "skipped": 1,
+  "checkpoint_sha256": {
+    "seated_classifier.pt": "03edbbb715d08b6a8d847e4c9c46c51bb6536b9fa8b4618095b69fc15ac85ceb",
+    "queue_classifier.pt": "e2ee02dd66f367e00b333941a9e6397474bf097360482a8382ef959c48d4e5cd"
+  },
+  "all": {
+    "images": 60,
+    "mean_absolute_interval_error": {
+      "headcount": 5.8,
+      "sitting": 5.167,
+      "standing": 3.817
+    }
+  },
+  "all_usable": {
+    "images": 60,
+    "mean_absolute_interval_error": {
+      "headcount": 5.8,
+      "sitting": 5.167,
+      "standing": 3.817
+    }
+  },
+  "exact_unflagged": {
+    "images": 49,
+    "mean_absolute_interval_error": {
+      "headcount": 3.776,
+      "sitting": 3.429,
+      "standing": 3.653
+    }
+  },
+  "queue_labeled": {
+    "images": 1,
+    "mean_absolute_count_error": 5.0
+  },
+  "posture_only_same_images_mae": {
+    "headcount": 5.8,
+    "sitting": 4.617,
+    "standing": 3.55
+  },
+  "limitations": "Only image 200419 has a confirmed queue label. Distance grouping worsens aggregate posture count errors relative to posture-only predictions; no generalized queue accuracy claim."
+}

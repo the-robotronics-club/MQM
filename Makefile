@@ -12,13 +12,13 @@ test-live:
 	RUN_LIVE_STACK=1 .venv/bin/python -m pytest tests/test_live_stack.py -q
 
 lint:
-	.venv/bin/ruff check api dashboard inference tests tools
+	.venv/bin/ruff check api dashboard inference research tests tools
 
 typecheck:
 	.venv/bin/mypy
 
 format-check:
-	.venv/bin/ruff format --check api dashboard inference tests tools
+	.venv/bin/ruff format --check api dashboard inference research tests tools
 
 services:
 	docker compose up -d --wait

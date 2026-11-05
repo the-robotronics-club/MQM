@@ -183,3 +183,49 @@ def test_schema_rejects_impossible_metrics():
     impossible["seat_occupancy_pct"] = 101
     with pytest.raises(ValidationError):
         CameraMetrics(**impossible, timestamp=datetime.now(UTC))
+
+
+def test_distance_snapshot_roundtrip_preserves_categories_and_unavailable_capacity(
+    client, monkeypatch
+):
+    metrics = sample_metrics()
+    metrics.update(
+        scene_method="distance",
+        sitting=8,
+        standing_other_count=1,
+        seats_total=None,
+        seats_occupied=None,
+        seat_occupancy_pct=None,
+    )
+    monkeypatch.setattr(ingestion, "process_frame", lambda *_: metrics)
+    test_client, _ = client
+    response = ingest(test_client)
+    assert response.status_code == 200, response.text
+    latest = test_client.get("/status/mess_main").json()["metrics"]
+    history = test_client.get("/history/mess_main").json()["points"][0]
+    for reading in (latest, history):
+        assert reading["headcount"] == 12
+        assert reading["sitting"] == 8
+        assert reading["standing_other_count"] == 1
+        assert reading["seats_total"] is None
+        assert reading["scene_method"] == "distance"
+
+
+def test_distance_schema_rejects_counts_that_do_not_sum():
+    from pydantic import ValidationError
+
+    from api.models import CameraMetrics
+
+    metrics = sample_metrics()
+    metrics.update(scene_method="distance", sitting=12, standing_other_count=12)
+    with pytest.raises(ValidationError, match="sum to headcount"):
+        CameraMetrics(**metrics, timestamp=datetime.now(UTC))
+
+
+def test_render_private_history_host_is_expanded_to_http(configured_env, monkeypatch):
+    from api.config import get_settings, reset_settings_cache
+
+    monkeypatch.delenv("INFLUX_URL")
+    monkeypatch.setenv("INFLUX_HOST", "history.internal")
+    reset_settings_cache()
+    assert get_settings().influx_url == "http://history.internal:8086"

@@ -1,0 +1,12 @@
+# Runtime only: model export uses the development environment in a build stage.
+numpy>=2.0,<3
+onnxruntime>=1.20,<2
+opencv-python-headless>=4.10,<5
+pillow>=10.4
+fastapi>=0.115
+uvicorn>=0.32
+pydantic>=2.9
+python-dotenv>=1.0
+python-multipart>=0.0.9
+redis>=5.2
+influxdb-client>=1.47

@@ -21,7 +21,20 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    get_settings()  # fail fast on missing credentials or invalid camera IDs
+    settings = get_settings()  # fail fast on missing credentials or invalid camera IDs
+    if settings.frame_metrics_mode == "distance" and settings.queue_estimator != "production":
+        raise ValueError("FRAME_METRICS_MODE=distance requires QUEUE_ESTIMATOR=production")
+    if settings.inference_backend == "onnx":
+        from inference.onnx_runtime import get_onnx_models
+
+        get_onnx_models()  # Fail startup if exports or runtime are unavailable.
+    if settings.queue_estimator != "production":
+        from research.calibration import load_calibration
+        from research.config import load_research_config
+
+        load_research_config()
+        for camera_id in settings.known_cameras:
+            load_calibration(camera_id)
     yield
 
 
@@ -69,6 +82,12 @@ async def ready(response: Response) -> dict:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     return {
         "status": "ready" if redis_ok and influx_ok else "not_ready",
-        "services": {"redis": redis_ok, "influxdb": influx_ok},
+        "inference_backend": get_settings().inference_backend,
+        "storage_backend": get_settings().storage_backend,
+        "services": (
+            {"sqlite": redis_ok and influx_ok}
+            if get_settings().storage_backend == "sqlite"
+            else {"redis": redis_ok, "influxdb": influx_ok}
+        ),
         "errors": errors,
     }

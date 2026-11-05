@@ -77,3 +77,7 @@ Human_detection/
 # Training handover: raw crops and source photos stay local. The reviewed
 # production checkpoints are promoted into models/ above.
 content/
+
+# Local real-world evaluation photos and annotations.
+drive-download-*/
+dataset_labels.json

@@ -38,6 +38,22 @@ def _positive_int(name: str, default: int) -> int:
     return value
 
 
+def _influx_url() -> str:
+    """Render supplies the private service hostname separately from its URL."""
+    configured = os.environ.get("INFLUX_URL", "").strip()
+    if configured:
+        return _required("INFLUX_URL")
+    host = os.environ.get("INFLUX_HOST", "").strip()
+    return f"http://{host}:8086" if host else _required("INFLUX_URL")
+
+
+def _choice(name: str, default: str, choices: set[str]) -> str:
+    value = os.environ.get(name, default).strip().lower()
+    if value not in choices:
+        raise ConfigurationError(f"{name} must be one of: {', '.join(sorted(choices))}")
+    return value
+
+
 def configured_camera_ids() -> tuple[str, ...]:
     """Return env-selected cameras, or every camera declared in zones.json."""
     try:
@@ -79,22 +95,35 @@ class Settings:
     read_cache_ttl_seconds: int
     max_upload_bytes: int
     cors_allow_origins: tuple[str, ...]
+    queue_estimator: str
+    frame_metrics_mode: str
+    storage_backend: str
+    inference_backend: str
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
+    backend = _choice("STORAGE_BACKEND", "external", {"external", "sqlite"})
     return Settings(
-        redis_url=_required("REDIS_URL"),
-        influx_url=_required("INFLUX_URL"),
-        influx_token=_required("INFLUX_TOKEN"),
-        influx_org=_required("INFLUX_ORG"),
-        influx_bucket=_required("INFLUX_BUCKET"),
+        redis_url=_required("REDIS_URL") if backend == "external" else "",
+        influx_url=_influx_url() if backend == "external" else "",
+        influx_token=_required("INFLUX_TOKEN") if backend == "external" else "",
+        influx_org=_required("INFLUX_ORG") if backend == "external" else "",
+        influx_bucket=_required("INFLUX_BUCKET") if backend == "external" else "",
         camera_api_key=_required("CAMERA_API_KEY"),
         known_cameras=configured_camera_ids(),
         latest_ttl_seconds=_positive_int("LATEST_TTL_SECONDS", 30),
         read_cache_ttl_seconds=_positive_int("READ_CACHE_TTL_SECONDS", 5),
         max_upload_bytes=_positive_int("MAX_UPLOAD_BYTES", 10 * 1024 * 1024),
         cors_allow_origins=configured_cors_origins(),
+        queue_estimator=_choice(
+            "QUEUE_ESTIMATOR",
+            "production",
+            {"production", "geometric", "membership", "occlusion"},
+        ),
+        frame_metrics_mode=_choice("FRAME_METRICS_MODE", "calibrated", {"calibrated", "distance"}),
+        storage_backend=backend,
+        inference_backend=_choice("INFERENCE_BACKEND", "torch", {"torch", "onnx"}),
     )
 
 

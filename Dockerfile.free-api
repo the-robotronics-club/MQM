@@ -1,0 +1,31 @@
+FROM python:3.13-slim AS export
+ENV YOLO_CONFIG_DIR=/tmp/yolo MPLCONFIGDIR=/tmp/matplotlib OMP_NUM_THREADS=2
+WORKDIR /export
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir 'ultralytics==8.4.183' 'onnx==1.19.1'
+# Ultralytics installs desktop OpenCV, which requires X11 libraries absent from
+# this slim, display-free build stage. Keep exactly one cv2 distribution.
+RUN pip uninstall -y opencv-python opencv-python-headless \
+    && pip install --no-cache-dir 'opencv-python-headless>=4.10,<5' \
+    && python -c "import cv2; from ultralytics import YOLO"
+COPY models/seated_classifier.pt ./models/
+COPY inference ./inference
+COPY tools/export_free_models.py ./tools/export_free_models.py
+RUN python -c "from ultralytics import YOLO; YOLO('models/yolov8n.pt')" \
+    && python -m tools.export_free_models
+
+FROM python:3.13-slim
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 \
+    INFERENCE_BACKEND=onnx FRAME_METRICS_MODE=distance QUEUE_ESTIMATOR=production \
+    STORAGE_BACKEND=sqlite LATEST_TTL_SECONDS=120
+WORKDIR /app
+COPY requirements-free-api.txt ./
+RUN pip install --no-cache-dir -r requirements-free-api.txt
+COPY api ./api
+COPY inference ./inference
+COPY config ./config
+COPY --from=export /export/models/*.onnx /export/models/onnx-manifest.json ./models/
+RUN useradd --uid 10001 --create-home app && chown -R app:app /app
+USER app
+EXPOSE 10000
+CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "10000"]

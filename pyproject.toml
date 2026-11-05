@@ -12,7 +12,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
 python_version = "3.13"
-files = ["api", "dashboard", "inference"]
+files = ["api", "dashboard", "inference", "research"]
 exclude = ["^1/", "^tools/"]
 explicit_package_bases = true
 check_untyped_defs = true

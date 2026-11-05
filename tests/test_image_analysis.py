@@ -10,6 +10,15 @@ from PIL import Image
 from dashboard.image_analysis import MAX_IMAGE_BYTES, analyze_photo, decode_photo
 
 
+@pytest.fixture(autouse=True)
+def photo_classifier_configuration(monkeypatch):
+    # Load the dependency before tests replace the detector module with a stub.
+    from inference import classifiers
+
+    monkeypatch.setenv("ATTRIBUTE_CLASSIFIERS_ENABLED", "false")
+    assert classifiers.attribute_classifiers_enabled() is False
+
+
 def photo_bytes(size=(80, 60), format="PNG"):
     output = BytesIO()
     Image.new("RGB", size, "red").save(output, format=format)
@@ -53,3 +62,56 @@ def test_no_people_is_a_successful_analysis(monkeypatch):
     result = analyze_photo(photo_bytes())
     assert result["headcount"] == 0
     assert result["detections"] == []
+
+
+def test_photo_posture_counts_share_live_classifier(monkeypatch):
+    from inference.posture import PosturePrediction
+
+    monkeypatch.setenv("ATTRIBUTE_CLASSIFIERS_ENABLED", "true")
+    monkeypatch.setitem(
+        sys.modules,
+        "inference.model",
+        SimpleNamespace(detect_people=lambda _: [{"bbox": [5, 5, 30, 50], "confidence": 0.9}]),
+    )
+    monkeypatch.setattr(
+        "inference.scene.classify_postures",
+        lambda *_: [PosturePrediction("Sitting", 0.9)],
+    )
+    result = analyze_photo(photo_bytes())
+    assert result["headcount"] == result["sitting"] == 1
+    assert result["standing"] == 0
+    assert result["metrics"] is None
+
+
+def test_photo_posture_failure_keeps_detection_count(monkeypatch):
+    monkeypatch.setenv("ATTRIBUTE_CLASSIFIERS_ENABLED", "true")
+    monkeypatch.setitem(
+        sys.modules,
+        "inference.model",
+        SimpleNamespace(detect_people=lambda _: [{"bbox": [5, 5, 30, 50], "confidence": 0.9}]),
+    )
+
+    def fail(*_):
+        raise RuntimeError("checkpoint unavailable")
+
+    monkeypatch.setattr("inference.scene.classify_postures", fail)
+    result = analyze_photo(photo_bytes())
+    assert result["headcount"] == 1
+    assert result["sitting"] is None and result["standing"] is None
+    assert result["posture_error"]
+
+
+def test_rotation_is_applied_before_detector_and_geometry(monkeypatch):
+    shapes = []
+
+    def detect(frame):
+        shapes.append(frame.shape)
+        return []
+
+    monkeypatch.setitem(sys.modules, "inference.model", SimpleNamespace(detect_people=detect))
+    result = analyze_photo(photo_bytes(size=(80, 60)), rotation_degrees_ccw=90)
+    assert shapes == [(80, 60, 3)]
+    assert (result["width"], result["height"]) == (60, 80)
+    assert Image.open(BytesIO(result["image"])).size == (60, 80)
+    with pytest.raises(ValueError, match="rotation"):
+        decode_photo(photo_bytes(), rotation_degrees_ccw=45)

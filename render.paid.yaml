@@ -1,0 +1,102 @@
+# Review the recurring cost in Render before clicking Deploy Blueprint.
+# Existing application data stores stay private; no personal photos are in this repo/image.
+services:
+  - type: keyvalue
+    name: mqm-snapshot-cache
+    plan: free
+    region: singapore
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+
+  - type: pserv
+    name: mqm-snapshot-history
+    runtime: image
+    plan: 0.5c-512mb
+    region: singapore
+    image:
+      url: docker.io/library/influxdb:2.7-alpine
+    disk:
+      name: history
+      mountPath: /var/lib/influxdb2
+      sizeGB: 1
+    envVars:
+      - key: DOCKER_INFLUXDB_INIT_MODE
+        value: setup
+      - key: DOCKER_INFLUXDB_INIT_USERNAME
+        value: mqm-admin
+      - key: DOCKER_INFLUXDB_INIT_PASSWORD
+        generateValue: true
+      - key: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+        generateValue: true
+      - key: DOCKER_INFLUXDB_INIT_ORG
+        value: mqm
+      - key: DOCKER_INFLUXDB_INIT_BUCKET
+        value: camera-metrics
+
+  - type: web
+    name: mqm-snapshot-api
+    runtime: docker
+    repo: https://github.com/arywk40-hue/MQM
+    branch: codex/04-integration-quality
+    plan: 1c-2g
+    region: singapore
+    autoDeployTrigger: "off"
+    dockerCommand: python -m uvicorn api.main:app --host 0.0.0.0 --port 10000
+    healthCheckPath: /ready
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: CAMERA_API_KEY
+        generateValue: true
+      - key: KNOWN_CAMERAS
+        value: mess_main
+      - key: FRAME_METRICS_MODE
+        value: distance
+      - key: QUEUE_ESTIMATOR
+        value: production
+      - key: LATEST_TTL_SECONDS
+        value: "60"
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: mqm-snapshot-cache
+          property: connectionString
+      - key: INFLUX_HOST
+        fromService:
+          type: pserv
+          name: mqm-snapshot-history
+          property: host
+      - key: INFLUX_TOKEN
+        fromService:
+          type: pserv
+          name: mqm-snapshot-history
+          envVarKey: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+      - key: INFLUX_ORG
+        value: mqm
+      - key: INFLUX_BUCKET
+        value: camera-metrics
+
+  - type: web
+    name: mqm-snapshot-dashboard
+    runtime: docker
+    repo: https://github.com/arywk40-hue/MQM
+    branch: codex/04-integration-quality
+    plan: free
+    region: singapore
+    autoDeployTrigger: "off"
+    dockerCommand: python -m streamlit run dashboard/app.py --server.address=0.0.0.0 --server.port=10000 --server.headless=true
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: PYTHONPATH
+        value: /app
+      - key: DASHBOARD_DEFAULT_MODE
+        value: Live cameras
+      - key: READ_API_HOST
+        fromService:
+          type: web
+          name: mqm-snapshot-api
+          property: host
+      - key: READ_API_PORT
+        value: "10000"

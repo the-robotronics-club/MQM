@@ -1,0 +1,33 @@
+# Single-host deployment. Set backend secrets in .env; terminate HTTPS at your proxy.
+services:
+  api:
+    build: .
+    image: mqm:local
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+  dashboard:
+    image: mqm:local
+    build: .
+    restart: unless-stopped
+    command: ["python", "-m", "streamlit", "run", "dashboard/app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]
+    environment:
+      READ_API_BASE_URL: http://api:8000
+      ATTRIBUTE_CLASSIFIERS_ENABLED: "true"
+      MODEL_WEIGHTS: yolov8n.pt
+      PYTHONPATH: /app
+    ports:
+      - "127.0.0.1:8501:8501"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3

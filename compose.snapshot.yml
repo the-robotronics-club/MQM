@@ -1,0 +1,64 @@
+# Self-contained single-server snapshot deployment; web ports bind to localhost.
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+  influxdb:
+    image: influxdb:2.7-alpine
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_INIT_USERNAME:?set INFLUX_INIT_USERNAME}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_INIT_PASSWORD:?set INFLUX_INIT_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:?set INFLUX_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:?set INFLUX_BUCKET}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:?set INFLUX_TOKEN}
+    volumes:
+      - snapshot_history:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8086/health"]
+      interval: 5s
+      retries: 20
+  api:
+    build: .
+    image: mqm:snapshot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      INFLUX_URL: http://influxdb:8086
+      FRAME_METRICS_MODE: distance
+      QUEUE_ESTIMATOR: production
+      LATEST_TTL_SECONDS: 60
+    depends_on:
+      redis: {condition: service_healthy}
+      influxdb: {condition: service_healthy}
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=5)"]
+      interval: 15s
+      start_period: 60s
+      retries: 5
+  dashboard:
+    image: mqm:snapshot
+    restart: unless-stopped
+    command: ["python", "-m", "streamlit", "run", "dashboard/app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]
+    environment:
+      READ_API_BASE_URL: http://api:8000
+      DASHBOARD_DEFAULT_MODE: Live cameras
+      PYTHONPATH: /app
+    ports:
+      - "127.0.0.1:8501:8501"
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health', timeout=5)"]
+      interval: 15s
+      retries: 5
+volumes:
+  snapshot_history:

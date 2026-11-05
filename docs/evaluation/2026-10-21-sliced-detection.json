@@ -1,0 +1,303 @@
+{
+  "plan": {
+    "experiment": "sliced-yolo11m-v1",
+    "weights_sha256": {
+      "yolo11m.pt": "d5ffc1a674953a08e11a8d21e022781b1b23a19b730afc309290bd9fb5305b95",
+      "seated_classifier.pt": "03edbbb715d08b6a8d847e4c9c46c51bb6536b9fa8b4618095b69fc15ac85ceb",
+      "queue_classifier.pt": "e2ee02dd66f367e00b333941a9e6397474bf097360482a8382ef959c48d4e5cd"
+    },
+    "labels_sha256": "5e0389e3e931c6b59577e6adec293178e428076f61a6b98dc43f7cdefcc9c886",
+    "source_sha256": "25b0af5f16fd6135e30c9a2b6cec0cb067a4a609bf921c4b9f5de7cfd0e5a1eb",
+    "input_size": 1280,
+    "confidence": {
+      "sparse": 0.25,
+      "crowd": 0.15,
+      "crowd_min_people": 25
+    },
+    "iou": 0.5,
+    "padding": "production crop_black_padding",
+    "tiles": {
+      "fraction": 0.6,
+      "internal_edge_margin_px": 3,
+      "count": 4
+    },
+    "queue_settings": {
+      "dist_threshold": 1.6,
+      "min_group_size": 3,
+      "min_elongation": 2.0,
+      "rescue_max_p_seated": 0.9,
+      "rescue_head_tol": 0.2,
+      "rescue_allow_chaining": false,
+      "rescue_min_neighbors": 2
+    },
+    "variants": [
+      "full",
+      "sliced"
+    ],
+    "training": false,
+    "promotion": "None automatic; no parameter sweep; reused diagnostic images",
+    "timing": "CPU, four threads; excludes image decoding; sliced includes full pass"
+  },
+  "weights_unchanged": true,
+  "results": {
+    "full": {
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.417,
+          "sitting": 3.883,
+          "standing": 3.717
+        },
+        "exact_count_matches": {
+          "headcount": 12,
+          "sitting": 20,
+          "standing": 15
+        },
+        "all_counts_match": 7,
+        "mean_seconds": 1.572
+      },
+      "exact": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.9,
+          "sitting": 2.46,
+          "standing": 3.6
+        },
+        "exact_count_matches": {
+          "headcount": 12,
+          "sitting": 18,
+          "standing": 13
+        },
+        "all_counts_match": 7,
+        "mean_seconds": 1.583
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 4.486,
+          "sitting": 2.229,
+          "standing": 3.8
+        },
+        "exact_count_matches": {
+          "headcount": 6,
+          "sitting": 16,
+          "standing": 11
+        },
+        "all_counts_match": 6,
+        "mean_seconds": 1.641
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 2.714,
+          "sitting": 3.214,
+          "standing": 3.357
+        },
+        "exact_count_matches": {
+          "headcount": 5,
+          "sitting": 1,
+          "standing": 1
+        },
+        "all_counts_match": 0,
+        "mean_seconds": 1.506
+      },
+      "median_seconds": 1.467,
+      "queue_labeled_images": 1,
+      "queue_mae": 2,
+      "within_1": {
+        "headcount": 22,
+        "sitting": 31,
+        "standing": 28
+      },
+      "all_counts_within_1": 16
+    },
+    "sliced": {
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 4.8,
+          "sitting": 2.917,
+          "standing": 4.267
+        },
+        "exact_count_matches": {
+          "headcount": 5,
+          "sitting": 14,
+          "standing": 9
+        },
+        "all_counts_match": 4,
+        "mean_seconds": 5.979
+      },
+      "exact": {
+        "images": 50,
+        "mae": {
+          "headcount": 4.26,
+          "sitting": 2.06,
+          "standing": 4.16
+        },
+        "exact_count_matches": {
+          "headcount": 5,
+          "sitting": 13,
+          "standing": 8
+        },
+        "all_counts_match": 4,
+        "mean_seconds": 5.947
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 5.029,
+          "sitting": 1.829,
+          "standing": 4.343
+        },
+        "exact_count_matches": {
+          "headcount": 4,
+          "sitting": 10,
+          "standing": 6
+        },
+        "all_counts_match": 3,
+        "mean_seconds": 6.097
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 2.643,
+          "sitting": 2.786,
+          "standing": 4.0
+        },
+        "exact_count_matches": {
+          "headcount": 0,
+          "sitting": 2,
+          "standing": 1
+        },
+        "all_counts_match": 0,
+        "mean_seconds": 5.737
+      },
+      "median_seconds": 5.559,
+      "queue_labeled_images": 1,
+      "queue_mae": 0,
+      "within_1": {
+        "headcount": 14,
+        "sitting": 31,
+        "standing": 18
+      },
+      "all_counts_within_1": 9
+    }
+  },
+  "reference": {
+    "name": "production-yolov8n-bounded-rescue",
+    "source_prediction_sha256": "debf2bc5e58b543cd1125e5b29eb693a4dc58e04f7de672c115a89ad63b8737f",
+    "cohorts": {
+      "all": {
+        "images": 60,
+        "mae": {
+          "headcount": 5.8,
+          "sitting": 4.55,
+          "standing": 3.5
+        },
+        "exact_count_matches": {
+          "headcount": 7,
+          "sitting": 14,
+          "standing": 13
+        },
+        "all_counts_match": 4,
+        "mean_seconds": 0.645
+      },
+      "exact": {
+        "images": 50,
+        "mae": {
+          "headcount": 3.7,
+          "sitting": 2.8,
+          "standing": 3.26
+        },
+        "exact_count_matches": {
+          "headcount": 7,
+          "sitting": 12,
+          "standing": 13
+        },
+        "all_counts_match": 4,
+        "mean_seconds": 0.665
+      },
+      "development": {
+        "images": 35,
+        "mae": {
+          "headcount": 3.829,
+          "sitting": 2.457,
+          "standing": 3.543
+        },
+        "exact_count_matches": {
+          "headcount": 5,
+          "sitting": 10,
+          "standing": 9
+        },
+        "all_counts_match": 3,
+        "mean_seconds": 0.735
+      },
+      "validation": {
+        "images": 14,
+        "mae": {
+          "headcount": 3.643,
+          "sitting": 3.857,
+          "standing": 2.786
+        },
+        "exact_count_matches": {
+          "headcount": 1,
+          "sitting": 1,
+          "standing": 3
+        },
+        "all_counts_match": 0,
+        "mean_seconds": 0.521
+      }
+    }
+  },
+  "paired_comparison": {
+    "full": {
+      "headcount": {
+        "improved": 26,
+        "worsened": 21,
+        "unchanged": 13
+      },
+      "sitting": {
+        "improved": 21,
+        "worsened": 16,
+        "unchanged": 23
+      },
+      "standing": {
+        "improved": 21,
+        "worsened": 23,
+        "unchanged": 16
+      }
+    },
+    "sliced": {
+      "headcount": {
+        "improved": 27,
+        "worsened": 25,
+        "unchanged": 8
+      },
+      "sitting": {
+        "improved": 26,
+        "worsened": 17,
+        "unchanged": 17
+      },
+      "standing": {
+        "improved": 20,
+        "worsened": 30,
+        "unchanged": 10
+      }
+    }
+  },
+  "decision": "Keep both experimental; no runtime model or settings changes. Slicing worsens standing error and exact-count matches despite lower overall total/sitting MAE. Full-frame YOLO11m is a future candidate; no all-count matches in the previously inspected validation group.",
+  "limitations": [
+    "Reused 60-image development diagnostic; no unseen generalization claim.",
+    "50 exact labels, 10 interval labels; interval matches are not exact labels.",
+    "Only one queue-labeled image; aggregate queue accuracy unknown.",
+    "No per-person ground-truth boxes: recall, precision, and category confusion cannot be measured.",
+    "Reference timing is from an earlier run, not a controlled same-run speed comparison."
+  ],
+  "verification": {
+    "tests_passed": 136,
+    "tests_skipped": 1,
+    "live_stack": false,
+    "training_performed": false,
+    "deployment_performed": false
+  }
+}

@@ -16,6 +16,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
+from PIL import Image
 from torchvision.models import mobilenet_v2
 
 from .model import resolve_weights
@@ -23,7 +24,7 @@ from .zones import ZoneAssignment
 
 QUEUE_WEIGHTS = "queue_classifier.pt"
 SEATED_WEIGHTS = "seated_classifier.pt"
-INPUT_SIZE = 224
+INPUT_SIZE = 128
 _IMAGENET_MEAN = torch.tensor((0.485, 0.456, 0.406)).view(3, 1, 1)
 _IMAGENET_STD = torch.tensor((0.229, 0.224, 0.225)).view(3, 1, 1)
 
@@ -73,8 +74,11 @@ def _crop_tensor(image: np.ndarray, bbox: list[float]) -> torch.Tensor:
     if x2 <= x1 or y2 <= y1:
         raise ValueError(f"invalid person crop bounds: {bbox}")
 
-    crop = cv2.resize(image[y1:y2, x1:x2], (INPUT_SIZE, INPUT_SIZE), interpolation=cv2.INTER_AREA)
-    rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
+    # Match the retraining notebook's PIL Resize (bilinear), RGB, normalization.
+    crop = cv2.cvtColor(image[y1:y2, x1:x2], cv2.COLOR_BGR2RGB)
+    rgb = np.array(
+        Image.fromarray(crop).resize((INPUT_SIZE, INPUT_SIZE), Image.Resampling.BILINEAR)
+    )
     tensor = torch.from_numpy(rgb).permute(2, 0, 1).float().div(255.0)
     return (tensor - _IMAGENET_MEAN) / _IMAGENET_STD
 
@@ -130,6 +134,39 @@ class PersonAttributeClassifiers:
 
 _default_classifiers: PersonAttributeClassifiers | None = None
 _default_classifiers_lock = threading.Lock()
+
+
+class SeatedClassifier:
+    """Distance grouping needs only the seated model, not the queue crop model."""
+
+    def __init__(self, weights: str | Path = SEATED_WEIGHTS) -> None:
+        self.model = _load_mobilenet_v2(weights)
+        self._lock = threading.Lock()
+
+    def predict(
+        self, image: np.ndarray, assignments: list[ZoneAssignment]
+    ) -> tuple[list[int], list[float]]:
+        if not assignments:
+            return [], []
+        crops = torch.stack([_crop_tensor(image, assignment.bbox) for assignment in assignments])
+        with self._lock:
+            return PersonAttributeClassifiers._predict(self.model, crops)
+
+
+_default_seated_classifier: SeatedClassifier | None = None
+_default_seated_lock = threading.Lock()
+
+
+def get_seated_classifier() -> SeatedClassifier:
+    global _default_seated_classifier
+    if _default_seated_classifier is not None:
+        return _default_seated_classifier
+    with _default_seated_lock:
+        if _default_seated_classifier is None:
+            _default_seated_classifier = SeatedClassifier(
+                os.environ.get("SEATED_CLASSIFIER_WEIGHTS", SEATED_WEIGHTS)
+            )
+    return _default_seated_classifier
 
 
 def get_attribute_classifiers() -> PersonAttributeClassifiers:

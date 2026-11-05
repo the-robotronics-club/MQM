@@ -1,0 +1,2 @@
+-r requirements-dev.txt
+pillow-heif>=1.0,<2

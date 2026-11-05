@@ -1,0 +1,12 @@
+camera_id: mess_main
+calibration_status: template
+coordinate_units: arbitrary_ground_units
+frame_size: {width: 736, height: 490}
+homography:
+  image_points: []
+  ground_points: []
+counter: {position: [0.0, 0.0]}
+queue_path: []
+density_radius: 1.2
+geometric: {max_path_distance: 0.8, min_counter_distance: 0.0, max_counter_distance: 12.0}
+calibration_version: uncalibrated

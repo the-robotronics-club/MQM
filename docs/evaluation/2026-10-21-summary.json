@@ -1,0 +1,27 @@
+{
+  "annotation": "Image-level sitting/standing counts; no queue ground truth",
+  "confidence": 0.25,
+  "image_size": 1280,
+  "detector": "yolov8n.pt",
+  "skipped": 1,
+  "checkpoint_sha256": {
+    "seated_classifier.pt": "03edbbb715d08b6a8d847e4c9c46c51bb6536b9fa8b4618095b69fc15ac85ceb",
+    "queue_classifier.pt": "e2ee02dd66f367e00b333941a9e6397474bf097360482a8382ef959c48d4e5cd"
+  },
+  "all": {
+    "images": 60,
+    "mean_absolute_interval_error": {
+      "headcount": 8.7,
+      "sitting": 5.967,
+      "standing": 4.367
+    }
+  },
+  "exact_unflagged": {
+    "images": 49,
+    "mean_absolute_interval_error": {
+      "headcount": 5.816,
+      "sitting": 3.755,
+      "standing": 3.816
+    }
+  }
+}

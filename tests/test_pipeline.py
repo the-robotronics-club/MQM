@@ -85,3 +85,34 @@ def test_jpeg_is_converted_to_opencv_bgr_order():
 def test_frame_coordinate_mismatch_is_rejected():
     with pytest.raises(ZoneConfigError, match="different coordinate spaces"):
         process_frame(ALT.read_bytes(), "mess_main", detector=lambda _: [])
+
+
+def test_distance_snapshot_accepts_any_resolution_and_uses_shared_scene(monkeypatch):
+    from inference.posture import PosturePrediction
+    from inference.scene import summarize_scene
+
+    monkeypatch.setenv("FRAME_METRICS_MODE", "distance")
+    monkeypatch.setenv("QUEUE_ESTIMATOR", "production")
+    output = BytesIO()
+    Image.new("RGB", (1280, 720)).save(output, format="JPEG")
+    detections = [{"bbox": [x, 100, x + 40, 300], "confidence": 0.8} for x in (100, 160, 220, 900)]
+    postures = [PosturePrediction("Standing", 0.9)] * 3 + [PosturePrediction("Sitting", 0.95)]
+    expected = summarize_scene(detections, postures)
+    actual = process_frame(
+        output.getvalue(),
+        "mess_main",
+        detector=lambda _: detections,
+        posture_classifier=lambda *_: postures,
+    )
+    for key in ("headcount", "queue_count", "sitting", "standing_other_count"):
+        assert actual[key] == expected[key]
+    assert actual["headcount"] == 4
+    assert actual["seats_total"] is None
+    assert actual["seat_occupancy_pct"] is None
+    assert actual["zone_counts"] == {}
+
+
+def test_invalid_snapshot_mode_is_rejected_before_detection(monkeypatch):
+    monkeypatch.setenv("FRAME_METRICS_MODE", "typo")
+    with pytest.raises(ValueError, match="FRAME_METRICS_MODE"):
+        process_frame(DENSE.read_bytes(), "mess_main", detector=lambda _: [])

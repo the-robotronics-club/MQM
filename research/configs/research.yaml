@@ -1,0 +1,20 @@
+feature_version: mqm-ground-v1
+random_seed: 42
+membership:
+  method: logistic
+  threshold: 0.5
+occlusion:
+  method: spacing
+  max_hidden_correction: 5
+  spacing_gap_multiplier: 1.6
+  # Populate these only from training/validation data in the calibration units.
+  expected_spacing: null
+  uncertainty_delta: null
+  spacing_min_mean_density: 0.5
+  spacing_max_gap_multiplier: 6.0
+models:
+  membership_logistic: models/research/membership-logistic.joblib
+  membership_gbdt: models/research/membership-gbdt.joblib
+  spacing: models/research/spacing.json
+  uncertainty: models/research/uncertainty.json
+  occlusion_residual: models/research/occlusion-residual.joblib

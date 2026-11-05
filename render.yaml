@@ -1,0 +1,35 @@
+# Both resources are Free. No private services, paid disks, or payment setup.
+services:
+  - type: web
+    name: mqm-free-snapshot-api
+    runtime: docker
+    repo: https://github.com/arywk40-hue/MQM
+    branch: codex/04-integration-quality
+    dockerfilePath: ./Dockerfile.free-api
+    plan: free
+    region: singapore
+    autoDeployTrigger: "off"
+    healthCheckPath: /ready
+    envVars:
+      - key: CAMERA_API_KEY
+        generateValue: true
+      - key: KNOWN_CAMERAS
+        value: mess_main
+      - key: PORT
+        value: "10000"
+  - type: web
+    name: mqm-free-snapshot-dashboard
+    runtime: docker
+    repo: https://github.com/arywk40-hue/MQM
+    branch: codex/04-integration-quality
+    dockerfilePath: ./Dockerfile.free-dashboard
+    plan: free
+    region: singapore
+    autoDeployTrigger: "off"
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: PORT
+        value: "10000"
+      # Free web services cannot receive private-network traffic. Use API's HTTPS URL.
+      - key: READ_API_BASE_URL
+        sync: false
